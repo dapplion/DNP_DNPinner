@@ -1,0 +1,21 @@
+{
+  "name": "dnp_dnpinner",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_PATH=src node src/index.js",
+    "dev": "NODE_ENV=development npm start",
+    "file": "NODE_PATH=src node",
+    "test": "NODE_PATH=src TEST=true mocha \"./{,!(node_modules)/**}/*.test.js\" ",
+    "coverage": "NODE_PATH=src ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls",
+    "lint": "NODE_PATH=src ./node_modules/.bin/eslint src/**/*.js --fix"
+  },
+  "author": "dappLion",
+  "license": "ISC",
+  "dependencies": {
+    "ipfs-api": "^17.5.0",
+    "web3": "^1.0.0-beta.34",
+    "winston": "^3.0.0"
+  }
+}
