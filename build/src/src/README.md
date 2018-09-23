@@ -23,8 +23,11 @@
 
 ```javascript
 directory = {
-    "kovan.dnp.dappmanager.eth": "QmQwBzV37wtnm1BtU1VZr3hramLZuCJDsz3m4P53fbCoHv",
-    "ethchain.dnp.dappnode.eth": "QmQwBzV37wtnm1BtU1VZr3hramLZuCJDsz3m4P53fbCoHv"
+    "kovan.dnp.dappmanager.eth": {
+      hash: "QmQwBzV37wtnm1BtU1VZr3hramLZuCJDsz3m4P53fbCoHv",
+      imageHash: "QmQwBzV37wtnm1BtU1VZr3hramLZuCJDsz3m4P53fbCoHv",
+      avatarHash: "QmQwBzV37wtnm1BtU1VZr3hramLZuCJDsz3m4P53fbCoHv"
+    },
     ...
 }
 ```
