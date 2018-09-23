@@ -1,0 +1,22 @@
+{
+  "name": "dnpinner.public.dappnode.eth",
+  "version": "0.0.1",
+  "description": "Dappnode package responsible for pinning the latest versions in the DAppNode directory",
+  "shortDescription": "Support DAppNode pinning DNPs",
+  "avatar": "/ipfs/QmUG9Y13BvmKC4RzFu85F7Ai63emnEYrci4pqbbLxt3mt1",
+  "type": "service",
+  "image": {
+    "path": "dnpinner.public.dappnode.eth_0.0.1.tar.xz",
+    "hash": "/ipfs/QmcgHQ17z1UK4poEXDr4bzhiPPtLKxPEZTgiktXgcy1JJU",
+    "size": 22019270,
+    "restart": "always"
+  },
+  "author": "dappLion <dapplion@giveth.io> (https://github.com/dapplion)",
+  "keywords": [
+    "DNP",
+    "IPFS",
+    "Support",
+    "APM"
+  ],
+  "license": "GPL-3.0"
+}

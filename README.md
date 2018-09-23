@@ -7,7 +7,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/espadrine.svg?style=social&label=Follow)](https://twitter.com/DAppNODE?lang=es)
 
 <p align="left">
-  <img src="" width="200"/>
+  <img src="DNPinner-min.png" width="200"/>
 </p>
 
 Dappnode package responsible for pinning the latest versions in the DAppNode directory

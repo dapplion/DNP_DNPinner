@@ -1,0 +1,5 @@
+version: "3.4"
+services:
+  dnpinner.public.dappnode.eth:
+    image: "dnpinner.public.dappnode.eth:0.0.1"
+    build: ./build
