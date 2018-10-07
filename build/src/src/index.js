@@ -2,32 +2,65 @@
 
 // node modules
 const logs = require('logs.js')(module);
-const apm = require('modules/apm');
 const ipfs = require('modules/ipfs');
-const getDirectory = require('modules/getDirectory');
+const web3 = require('./modules/web3Setup');
+const registryContract = require('./contracts/registry.json');
+const repoContract = require('./contracts/repository.json');
 
 const directoryHashes = {};
 
-getDirectory.getDirectory().then((packages) => {
-  packages.forEach(addPackage);
+const registry = new web3.eth.Contract(
+  registryContract.abi,
+  registryContract.address
+);
+
+// Get current repos
+logs.info(`Fetching past events of registry ${registryContract.address}`)
+registry.getPastEvents('NewRepo', {
+  fromBlock: registryContract.deployBlock,
+  toBlock: 'latest',
+}).then(events => events.forEach(handleNewRepo));
+
+// Subscribe to new repos
+registry.events.NewRepo((err, event) => {
+  if (err) return logs.error(`Error on registry NewRepo: ${err.stack || err.message}`);
+  handleNewRepo(event);
 });
 
-getDirectory.subscribeToNewPackages(addPackage);
+function handleNewRepo(events) {
+  // id: '0xd7ec73ef33cd0720e49cbc4bfb1a912840535bee540dcf01d1cc4caae0129631',
+  // name: 'livepeer',
+  // repo: '0xf655173FAfb85f9f2943b2F2518146a4c149c70b',
+  const {id, name, repo: repoAddr} = events.returnValues
+  addPackage({id, name, repoAddr})
+}
 
-function addPackage(name) {
-  const callback = (hash) => newVersion(name, hash);
-  // Fetch current latest version
-  apm.getLatest(name).then(callback);
 
-  // Subscribe to new versions
-  apm.subscribeToNewVersions(name, callback).then(() => {
-    logs.info('Successfully subscribed to new versions of '+name);
-  }).catch((err) => {
-    logs.error('Error subscribing to new versions of '+name+': '+err);
+
+function addPackage({id, name, repoAddr}) {
+  logs.info(`Adding ${name}, repoAddr: ${repoAddr}, id: ${id}`)
+  const repo = new web3.eth.Contract(repoContract.abi, repoAddr);
+
+  function getLatest() {
+    repo.methods.getLatest().call()
+    .then((result) => web3.utils.hexToAscii(result.contentURI))
+    .then((hash) => {
+      if (hash.startsWith('/ipfs/')) newVersion({id, hash, name})
+    })
+    .catch((err) => logs.error(`Error getting ${name}'s latest version: ${err.stack || err.message}`))
+  }
+
+  // Get latest version
+  getLatest()
+
+  // Subscribe to new verions
+  repo.events.NewVersion((error) => {
+    if (error) return logs.error(`Error on NewVersion of ${name}: ${err.stack || err.message}`);
+    getLatest()
   });
 }
 
-function newVersion(name, hash) {
+function newVersion({id, hash, name}) {
   // Provided hash is the hash of the manifest.
   // Resolve it to get the image hash and avatar hash
   ipfs.cat(hash)
@@ -36,38 +69,31 @@ function newVersion(name, hash) {
   .then((manifest) => {
     const avatarHash = manifest.avatar;
     const imageHash = manifest.image.hash;
-    rePin(name, hash, 'manifest', name+'\'s manifest');
-    rePin(name, imageHash, 'image', name+'\'s image');
-    rePin(name, avatarHash, 'avatar', name+'\'s avatar');
+    rePin(id, hash, 'manifest', `${name}'s manifest`);
+    rePin(id, imageHash, 'image', `${name}'s image`);
+    rePin(id, avatarHash, 'avatar', `${name}'s avatar`);
   });
 }
 
-function rePin(name, hash, item, topic) {
+function rePin(id, hash, item, topic) {
   if (!hash) {
     return logs.warn('Missing hash of '+topic);
   }
-  if (!directoryHashes[name]) {
-    directoryHashes[name] = {};
+  if (!directoryHashes[id]) {
+    directoryHashes[id] = {};
   }
-  if (directoryHashes[name][item]) {
-    pinRmSafe(hash, topic);
+  if (directoryHashes[id][item]) {
+    pinSafe('pinRm', hash, topic);
   }
-  directoryHashes[name][item] = hash;
-  pinAddSafe(hash, topic);
+  directoryHashes[id][item] = hash;
+  pinSafe('pinAdd', hash, topic);
 }
 
-function pinRmSafe(hash, topic) {
-  ipfs.pinRm(hash).then(() => {
-    logs.info('Successfully unpinned '+topic+' '+hash);
+// method = pinRm, pinAdd
+function pinSafe(method, hash, topic) {
+  ipfs[method](hash).then(() => {
+    logs.info(`Successfully ${method} ${topic} ${hash}`);
   }).catch((err) => {
-    logs.error('Error unpinning '+topic+' '+hash+': '+err);
-  });
-}
-
-function pinAddSafe(hash, topic) {
-  ipfs.pinAdd(hash).then(() => {
-    logs.info('Successfully pinned '+topic+' '+hash);
-  }).catch((err) => {
-    logs.error('Error pinning '+topic+' '+hash+': '+err);
+    logs.error(`Error ${method} ${topic} ${hash}: ${err.stack || err.message}`);
   });
 }
