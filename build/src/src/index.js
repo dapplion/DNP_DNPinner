@@ -19,7 +19,25 @@ logs.info(`Fetching past events of registry ${registryContract.address}`)
 registry.getPastEvents('NewRepo', {
   fromBlock: registryContract.deployBlock,
   toBlock: 'latest',
-}).then(events => events.forEach(handleNewRepo));
+}).then(events => {
+  // Deal with duplicated repos
+  // If two events have the same id, the latest will be pinned
+  const uniqueIdEvents = {}
+  for (const event of events) {
+    const {id, repo, name} = event.returnValues
+    if (uniqueIdEvents[id]){
+      if (event.blockNumber > uniqueIdEvents[id].blockNumber) {
+        logs.warn(`Ignoring repo ${name} - ${uniqueIdEvents[id].returnValues.repo}, another most recent repo has the same id ${event.blockNumber} > ${uniqueIdEvents[id].blockNumber}`)
+        uniqueIdEvents[id] = event
+      } else {
+        logs.warn(`Ignoring repo ${name} - ${repo}, another most recent repo has the same id ${uniqueIdEvents[id].blockNumber} > ${event.blockNumber}`)
+      }  
+    } else {
+      uniqueIdEvents[id] = event
+    }
+  }
+  Object.values(uniqueIdEvents).forEach(handleNewRepo)
+});
 
 // Subscribe to new repos
 registry.events.NewRepo((err, event) => {
@@ -27,11 +45,11 @@ registry.events.NewRepo((err, event) => {
   handleNewRepo(event);
 });
 
-function handleNewRepo(events) {
+function handleNewRepo(event) {
   // id: '0xd7ec73ef33cd0720e49cbc4bfb1a912840535bee540dcf01d1cc4caae0129631',
   // name: 'livepeer',
   // repo: '0xf655173FAfb85f9f2943b2F2518146a4c149c70b',
-  const {id, name, repo: repoAddr} = events.returnValues
+  const {id, name, repo: repoAddr} = event.returnValues
   addPackage({id, name, repoAddr})
 }
 

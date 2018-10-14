@@ -21,7 +21,7 @@ if (!process.env.TEST) {
 
 function initIPFS() {
   if (process.env.NODE_ENV === 'development') {
-    params.IPFS = '127.0.0.1';
+    params.IPFS = 'ipfs.infura.io';
   }
   const IPFS_HOST = params.IPFS;
   logs.info('Attempting IPFS connection to : '+IPFS_HOST);
