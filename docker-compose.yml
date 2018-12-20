@@ -1,18 +1,5 @@
-version: '3.4'
-networks:
-    network:
-        driver: bridge
-        ipam:
-            config:
-                -
-                    subnet: 172.33.0.0/16
+version: "3.4"
 services:
-    dnpinner.public.dappnode.eth:
-        build: ./build
-        image: 'dnpinner.public.dappnode.eth:0.0.5'
-        container_name: DAppNodePackage-dnpinner.dnp.dappnode.eth
-        restart: always
-        dns: 172.33.1.2
-        networks:
-            network:
-                ipv4_address: 172.33.1.3
+  dnpinner.public.dappnode.eth:
+    image: "dnpinner.public.dappnode.eth:0.0.1"
+    build: ./build
